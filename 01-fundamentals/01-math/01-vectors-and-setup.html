@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL 基础 - 向量和基本设置</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .explanation {
+            margin: 20px 0;
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .vector-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .vector-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .vector-input {
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 5px;
+        }
+        .vector-input label {
+            display: block;
+            margin: 10px 0;
+        }
+        .vector-input input[type="range"] {
+            width: 80%;
+            margin-right: 10px;
+        }
+        .vector-results {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        #results p {
+            margin: 5px 0;
+        }
+        .points-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .point-panel {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .operations-panel {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .operations-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .operation-group {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 课程标题和说明 -->
+        <h1>第一课：向量和 WebGL 基本设置</h1>
+        <div class="explanation">
+            <h2>学习目标：</h2>
+            <ol>
+                <li>理解向量的基本概念和运算</li>
+                <li>掌握 WebGL 的基本设置和初始化</li>
+                <li>学习在 WebGL 中如何表示和操作向量数据</li>
+                <li>实践向量在图形渲染中的应用</li>
+            </ol>
+        </div>
+
+        <!-- WebGL Canvas -->
+        <canvas id="glcanvas" width="600" height="400"></canvas>
+
+        <!-- 向量操作控制面板 -->
+        <div class="explanation">
+            <h2>向量操作面板</h2>
+            <div class="points-container">
+                <!-- 点1的控制面板 -->
+                <div class="point-panel">
+                    <h3>点 1 (红色)</h3>
+                    <div class="vector-controls">
+                        <div class="vector-input">
+                            <h4>位置向量</h4>
+                            <label>X: <input type="range" id="p1x" min="-1" max="1" step="0.1" value="0.5"></label>
+                            <span id="p1x-value">0.5</span>
+                            <label>Y: <input type="range" id="p1y" min="-1" max="1" step="0.1" value="0.0"></label>
+                            <span id="p1y-value">0.0</span>
+                        </div>
+                        <div class="vector-results">
+                            <h4>向量属性：</h4>
+                            <p>坐标: <span id="p1-result">(0.5, 0.0)</span></p>
+                            <p>长度: <span id="p1-length">0.5</span></p>
+                            <p>归一化: <span id="p1-norm">(1.0, 0.0)</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 点2的控制面板 -->
+                <div class="point-panel">
+                    <h3>点 2 (绿色)</h3>
+                    <div class="vector-controls">
+                        <div class="vector-input">
+                            <h4>位置向量</h4>
+                            <label>X: <input type="range" id="p2x" min="-1" max="1" step="0.1" value="0.0"></label>
+                            <span id="p2x-value">0.0</span>
+                            <label>Y: <input type="range" id="p2y" min="-1" max="1" step="0.1" value="0.5"></label>
+                            <span id="p2y-value">0.5</span>
+                        </div>
+                        <div class="vector-results">
+                            <h4>向量属性：</h4>
+                            <p>坐标: <span id="p2-result">(0.0, 0.5)</span></p>
+                            <p>长度: <span id="p2-length">0.5</span></p>
+                            <p>归一化: <span id="p2-norm">(0.0, 1.0)</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 点3的控制面板 -->
+                <div class="point-panel">
+                    <h3>点 3 (蓝色)</h3>
+                    <div class="vector-controls">
+                        <div class="vector-input">
+                            <h4>位置向量</h4>
+                            <label>X: <input type="range" id="p3x" min="-1" max="1" step="0.1" value="-0.5"></label>
+                            <span id="p3x-value">-0.5</span>
+                            <label>Y: <input type="range" id="p3y" min="-1" max="1" step="0.1" value="-0.5"></label>
+                            <span id="p3y-value">-0.5</span>
+                        </div>
+                        <div class="vector-results">
+                            <h4>向量属性：</h4>
+                            <p>坐标: <span id="p3-result">(-0.5, -0.5)</span></p>
+                            <p>长度: <span id="p3-length">0.707</span></p>
+                            <p>归一化: <span id="p3-norm">(-0.707, -0.707)</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 向量运算结果 -->
+            <div class="operations-panel">
+                <h3>向量运算</h3>
+                <div class="operations-results">
+                    <div class="operation-group">
+                        <h4>点1和点2之间：</h4>
+                        <p>距离: <span id="p12-distance">0.0</span></p>
+                        <p>方向向量: <span id="p12-direction">(0.0, 0.0)</span></p>
+                    </div>
+                    <div class="operation-group">
+                        <h4>点2和点3之间：</h4>
+                        <p>距离: <span id="p23-distance">0.0</span></p>
+                        <p>方向向量: <span id="p23-direction">(0.0, 0.0)</span></p>
+                    </div>
+                    <div class="operation-group">
+                        <h4>点3和点1之间：</h4>
+                        <p>距离: <span id="p31-distance">0.0</span></p>
+                        <p>方向向量: <span id="p31-direction">(0.0, 0.0)</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 练习说明 -->
+        <div class="explanation">
+            <h2>练习题：</h2>
+            <p>1. 尝试修改点的位置（修改 vertexPosition 数组中的值）</p>
+            <p>2. 尝试修改点的颜色（修改 fragmentShader 中的颜色值）</p>
+            <p>3. 尝试添加更多的点（向 vertexPosition 数组添加更多坐标）</p>
+        </div>
+    </div>
+
+    <!-- 顶点着色器 -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        // 顶点着色器是每个顶点运行一次的程序
+        // attribute 变量是从 JavaScript 代码中传递到顶点着色器的数据
+        attribute vec4 a_position;
+        attribute vec4 a_color;
+        
+        varying vec4 v_color;
+        
+        void main() {
+            // gl_Position 是顶点着色器的内置变量，用于设置顶点的位置
+            // 这里直接将传入的位置赋值给 gl_Position
+            gl_Position = a_position;
+            
+            // 设置点的大小为 10.0
+            gl_PointSize = 10.0;
+            
+            // 将颜色传递给片段着色器
+            v_color = a_color;
+        }
+    </script>
+
+    <!-- 片段着色器 -->
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        // 片段着色器负责设置像素的颜色
+        precision mediump float;
+        
+        varying vec4 v_color;
+        
+        void main() {
+            // gl_FragColor 是片段着色器的内置变量，用于设置像素的颜色
+            // 这里使用从顶点着色器传递过来的颜色
+            gl_FragColor = v_color;
+        }
+    </script>
+
+    <script>
+        // 向量运算工具类
+        class Vector2 {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+
+            // 向量加法
+            add(v) {
+                return new Vector2(this.x + v.x, this.y + v.y);
+            }
+
+            // 向量减法
+            subtract(v) {
+                return new Vector2(this.x - v.x, this.y - v.y);
+            }
+
+            // 向量缩放
+            scale(s) {
+                return new Vector2(this.x * s, this.y * s);
+            }
+
+            // 向量点积
+            dot(v) {
+                return this.x * v.x + this.y * v.y;
+            }
+
+            // 向量长度
+            length() {
+                return Math.sqrt(this.dot(this));
+            }
+
+            // 向量归一化
+            normalize() {
+                const len = this.length();
+                return len > 0 ? this.scale(1 / len) : new Vector2(0, 0);
+            }
+
+            // 转换为WebGL数组格式
+            toArray() {
+                return [this.x, this.y];
+            }
+        }
+
+        // 初始化 WebGL
+        function initWebGL() {
+            const canvas = document.getElementById('glcanvas');
+            const gl = canvas.getContext('webgl');
+
+            if (!gl) {
+                console.error('无法初始化 WebGL');
+                return;
+            }
+
+            // 创建着色器程序
+            const vertexShaderSource = document.getElementById('vertex-shader').text;
+            const fragmentShaderSource = document.getElementById('fragment-shader').text;
+
+            function createShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error('着色器编译错误:', gl.getShaderInfoLog(shader));
+                    gl.deleteShader(shader);
+                    return null;
+                }
+                return shader;
+            }
+
+            function createProgram(gl, vertexShader, fragmentShader) {
+                const program = gl.createProgram();
+                gl.attachShader(program, vertexShader);
+                gl.attachShader(program, fragmentShader);
+                gl.linkProgram(program);
+                
+                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                    console.error('程序链接错误:', gl.getProgramInfoLog(program));
+                    return null;
+                }
+                return program;
+            }
+
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+            const program = createProgram(gl, vertexShader, fragmentShader);
+
+            // 获取属性位置
+            const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+            const colorAttributeLocation = gl.getAttribLocation(program, 'a_color');
+
+            // 创建缓冲区
+            const positionBuffer = gl.createBuffer();
+            const colorBuffer = gl.createBuffer();
+
+            // 渲染函数
+            function drawScene() {
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(1.0, 1.0, 1.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                gl.useProgram(program);
+
+                // 设置位置属性
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.enableVertexAttribArray(positionAttributeLocation);
+                gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+                // 设置颜色属性
+                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                gl.enableVertexAttribArray(colorAttributeLocation);
+                gl.vertexAttribPointer(colorAttributeLocation, 4, gl.FLOAT, false, 0, 0);
+
+                // 绘制点
+                gl.drawArrays(gl.POINTS, 0, 3);
+            }
+
+            // 更新顶点数据的函数
+            function updateVertexData() {
+                // 获取所有点的位置
+                const p1x = parseFloat(document.getElementById('p1x').value);
+                const p1y = parseFloat(document.getElementById('p1y').value);
+                const p2x = parseFloat(document.getElementById('p2x').value);
+                const p2y = parseFloat(document.getElementById('p2y').value);
+                const p3x = parseFloat(document.getElementById('p3x').value);
+                const p3y = parseFloat(document.getElementById('p3y').value);
+
+                // 更新顶点位置
+                const positions = new Float32Array([
+                    p1x, p1y,
+                    p2x, p2y,
+                    p3x, p3y
+                ]);
+
+                // 更新颜色数据 - 红、绿、蓝三个点
+                const colors = new Float32Array([
+                    1.0, 0.0, 0.0, 1.0,  // 点1红色
+                    0.0, 1.0, 0.0, 1.0,  // 点2绿色
+                    0.0, 0.0, 1.0, 1.0   // 点3蓝色
+                ]);
+
+                // 更新缓冲区数据
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+                // 计算并更新向量属性
+                updateVectorProperties(p1x, p1y, p2x, p2y, p3x, p3y);
+
+                // 重绘场景
+                drawScene();
+            }
+
+            // 计算向量属性
+            function updateVectorProperties(p1x, p1y, p2x, p2y, p3x, p3y) {
+                // 创建向量对象
+                const p1 = new Vector2(p1x, p1y);
+                const p2 = new Vector2(p2x, p2y);
+                const p3 = new Vector2(p3x, p3y);
+
+                // 更新点1的属性
+                document.getElementById('p1-result').textContent = `(${p1x.toFixed(2)}, ${p1y.toFixed(2)})`;
+                document.getElementById('p1-length').textContent = p1.length().toFixed(3);
+                const p1Norm = p1.normalize();
+                document.getElementById('p1-norm').textContent = `(${p1Norm.x.toFixed(3)}, ${p1Norm.y.toFixed(3)})`;
+
+                // 更新点2的属性
+                document.getElementById('p2-result').textContent = `(${p2x.toFixed(2)}, ${p2y.toFixed(2)})`;
+                document.getElementById('p2-length').textContent = p2.length().toFixed(3);
+                const p2Norm = p2.normalize();
+                document.getElementById('p2-norm').textContent = `(${p2Norm.x.toFixed(3)}, ${p2Norm.y.toFixed(3)})`;
+
+                // 更新点3的属性
+                document.getElementById('p3-result').textContent = `(${p3x.toFixed(2)}, ${p3y.toFixed(2)})`;
+                document.getElementById('p3-length').textContent = p3.length().toFixed(3);
+                const p3Norm = p3.normalize();
+                document.getElementById('p3-norm').textContent = `(${p3Norm.x.toFixed(3)}, ${p3Norm.y.toFixed(3)})`;
+
+                // 计算点之间的向量和距离
+                const p12 = p2.subtract(p1);
+                const p23 = p3.subtract(p2);
+                const p31 = p1.subtract(p3);
+
+                // 更新点之间的距离和方向
+                document.getElementById('p12-distance').textContent = p12.length().toFixed(3);
+                document.getElementById('p23-distance').textContent = p23.length().toFixed(3);
+                document.getElementById('p31-distance').textContent = p31.length().toFixed(3);
+
+                const p12Dir = p12.normalize();
+                const p23Dir = p23.normalize();
+                const p31Dir = p31.normalize();
+
+                document.getElementById('p12-direction').textContent = `(${p12Dir.x.toFixed(3)}, ${p12Dir.y.toFixed(3)})`;
+                document.getElementById('p23-direction').textContent = `(${p23Dir.x.toFixed(3)}, ${p23Dir.y.toFixed(3)})`;
+                document.getElementById('p31-direction').textContent = `(${p31Dir.x.toFixed(3)}, ${p31Dir.y.toFixed(3)})`;
+            }
+
+            // 添加事件监听器
+            const inputs = ['p1x', 'p1y', 'p2x', 'p2y', 'p3x', 'p3y'];
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                const valueSpan = document.getElementById(`${id}-value`);
+                input.addEventListener('input', (e) => {
+                    valueSpan.textContent = e.target.value;
+                    updateVertexData();
+                });
+            });
+
+            // 初始化场景
+            updateVertexData();
+        }
+
+        initWebGL();
+    </script>
+</body>
+</html>

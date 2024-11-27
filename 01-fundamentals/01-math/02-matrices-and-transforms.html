@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第二课：矩阵运算与变换</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>第二课：矩阵运算与变换</h1>
+        
+        <div class="explanation">
+            <h2>学习目标：</h2>
+            <ol>
+                <li>理解矩阵的基本概念和表示方法</li>
+                <li>掌握基本的矩阵运算（加法、乘法）</li>
+                <li>学习变换矩阵（平移、旋转、缩放）的原理和应用</li>
+                <li>在 WebGL 中实践矩阵变换</li>
+            </ol>
+        </div>
+
+        <div class="explanation">
+            <h2>矩阵基础</h2>
+            <p>矩阵是一个按照长方形阵列排列的复数或实数集合。在图形学中，我们主要使用 4×4 的矩阵来表示三维空间中的变换。</p>
+            
+            <div class="code-example">
+                <pre>
+// 单位矩阵
+[1 0 0 0]
+[0 1 0 0]
+[0 0 1 0]
+[0 0 0 1]</pre>
+            </div>
+
+            <h3>变换矩阵的类型：</h3>
+            <ul>
+                <li><strong>平移矩阵：</strong>移动物体的位置</li>
+                <li><strong>旋转矩阵：</strong>围绕某个轴旋转物体</li>
+                <li><strong>缩放矩阵：</strong>改变物体的大小</li>
+            </ul>
+        </div>
+
+        <div class="interactive-section">
+            <div class="matrix-controls">
+                <div class="matrix-panel">
+                    <h3>变换矩阵</h3>
+                    <div class="matrix-input" id="matrixA">
+                        <input type="number" value="1" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="1" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="1" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="0" step="0.1">
+                        <input type="number" value="1" step="0.1">
+                    </div>
+                </div>
+
+                <div class="transform-controls">
+                    <h3>变换控制</h3>
+                    <div class="control-group">
+                        <label>平移：</label>
+                        <div class="slider-group">
+                            <div class="slider-container">
+                                <label>X:</label>
+                                <input type="range" id="translateX" min="-5" max="5" step="0.1" value="0">
+                                <span class="value">0</span>
+                            </div>
+                            <div class="slider-container">
+                                <label>Y:</label>
+                                <input type="range" id="translateY" min="-5" max="5" step="0.1" value="0">
+                                <span class="value">0</span>
+                            </div>
+                            <div class="slider-container">
+                                <label>Z:</label>
+                                <input type="range" id="translateZ" min="-5" max="5" step="0.1" value="0">
+                                <span class="value">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>旋转：</label>
+                        <div class="slider-group">
+                            <div class="slider-container">
+                                <label>X轴:</label>
+                                <input type="range" id="rotateX" min="0" max="360" step="1" value="0">
+                                <span class="value">0°</span>
+                            </div>
+                            <div class="slider-container">
+                                <label>Y轴:</label>
+                                <input type="range" id="rotateY" min="0" max="360" step="1" value="0">
+                                <span class="value">0°</span>
+                            </div>
+                            <div class="slider-container">
+                                <label>Z轴:</label>
+                                <input type="range" id="rotateZ" min="0" max="360" step="1" value="0">
+                                <span class="value">0°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>缩放：</label>
+                        <div class="slider-group">
+                            <div class="slider-container">
+                                <label>X:</label>
+                                <input type="range" id="scaleX" min="0.1" max="2" step="0.1" value="1">
+                                <span class="value">1</span>
+                            </div>
+                            <div class="slider-container">
+                                <label>Y:</label>
+                                <input type="range" id="scaleY" min="0.1" max="2" step="0.1" value="1">
+                                <span class="value">1</span>
+                            </div>
+                            <div class="slider-container">
+                                <label>Z:</label>
+                                <input type="range" id="scaleZ" min="0.1" max="2" step="0.1" value="1">
+                                <span class="value">1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="visualization">
+                <canvas id="glCanvas" width="600" height="400">
+                    Your browser does not support the HTML canvas element.
+                </canvas>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h2>实时效果</h2>
+            <p>上方的 WebGL 场景展示了矩阵变换的效果。你可以通过调整控制面板中的滑块来观察不同变换对物体的影响。</p>
+            <ul>
+                <li>平移控制可以改变物体在空间中的位置</li>
+                <li>旋转控制可以使物体围绕不同轴旋转</li>
+                <li>缩放控制可以改变物体在不同方向上的大小</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 顶点着色器 -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec4 aVertexPosition;
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        
+        void main() {
+            gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+        }
+    </script>
+
+    <!-- 片元着色器 -->
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+        
+        void main() {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    </script>
+
+    <script>
+        // Matrix4 类用于处理4x4矩阵运算
+        class Matrix4 {
+            constructor() {
+                this.elements = new Float32Array([
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1
+                ]);
+            }
+
+            /**
+             * 实现4x4矩阵乘法运算
+             * 矩阵乘法规则：C[i,j] = sum(A[i,k] * B[k,j]) 其中k从0到3
+             * 例如计算第一个元素C[0,0]：
+             * C[0,0] = A[0,0]*B[0,0] + A[0,1]*B[1,0] + A[0,2]*B[2,0] + A[0,3]*B[3,0]
+             * 
+             * @param {Matrix4} b - 要与当前矩阵相乘的矩阵
+             * @returns {Matrix4} - 返回乘法结果矩阵
+             */
+            multiply(b) {
+                // 获取当前矩阵的元素数组
+                const a = this.elements;
+                // 创建新矩阵存储结果
+                const result = new Matrix4();
+                const r = result.elements;
+
+                // 外层循环遍历结果矩阵的行 (i)
+                for (let i = 0; i < 4; i++) {
+                    // 中层循环遍历结果矩阵的列 (j)
+                    for (let j = 0; j < 4; j++) {
+                        let sum = 0;
+                        // 内层循环计算点积：A的第i行与B的第j列的对应元素相乘并求和
+                        for (let k = 0; k < 4; k++) {
+                            // a[i * 4 + k] 获取矩阵A中第i行第k列的元素
+                            // b.elements[k * 4 + j] 获取矩阵B中第k行第j列的元素
+                            sum += a[i * 4 + k] * b.elements[k * 4 + j];
+                        }
+                        // 将计算结果存储到结果矩阵的对应位置
+                        r[i * 4 + j] = sum;
+                    }
+                }
+
+                return result;
+            }
+
+            translate(x, y, z) {
+                const m = new Matrix4();
+                m.elements[12] = x;
+                m.elements[13] = y;
+                m.elements[14] = z;
+                return this.multiply(m);
+            }
+
+            rotateX(angle) {
+                const m = new Matrix4();
+                const c = Math.cos(angle);
+                const s = Math.sin(angle);
+                m.elements[5] = c;
+                m.elements[6] = -s;
+                m.elements[9] = s;
+                m.elements[10] = c;
+                return this.multiply(m);
+            }
+
+            rotateY(angle) {
+                const m = new Matrix4();
+                const c = Math.cos(angle);
+                const s = Math.sin(angle);
+                m.elements[0] = c;
+                m.elements[2] = s;
+                m.elements[8] = -s;
+                m.elements[10] = c;
+                return this.multiply(m);
+            }
+
+            rotateZ(angle) {
+                const m = new Matrix4();
+                const c = Math.cos(angle);
+                const s = Math.sin(angle);
+                m.elements[0] = c;
+                m.elements[1] = -s;
+                m.elements[4] = s;
+                m.elements[5] = c;
+                return this.multiply(m);
+            }
+
+            scale(x, y, z) {
+                const m = new Matrix4();
+                m.elements[0] = x;
+                m.elements[5] = y;
+                m.elements[10] = z;
+                return this.multiply(m);
+            }
+        }
+
+        // 初始化 WebGL
+        function initWebGL() {
+            const canvas = document.getElementById('glCanvas');
+            const gl = canvas.getContext('webgl');
+
+            if (!gl) {
+                alert('无法初始化 WebGL，您的浏览器或机器可能不支持它。');
+                return;
+            }
+
+            // 编译着色器程序
+            const vertexShader = compileShader(gl, gl.VERTEX_SHADER, 
+                document.getElementById('vertex-shader').textContent);
+            const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, 
+                document.getElementById('fragment-shader').textContent);
+
+            // 创建着色器程序
+            const shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                alert('无法初始化着色器程序: ' + gl.getProgramInfoLog(shaderProgram));
+                return null;
+            }
+
+            // 获取着色器变量位置
+            const programInfo = {
+                program: shaderProgram,
+                attribLocations: {
+                    vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                },
+                uniformLocations: {
+                    projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                    modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                },
+            };
+
+            // 创建缓冲区
+            const buffers = initBuffers(gl);
+
+            // 初始化变换参数
+            initTransformControls(gl, programInfo, buffers);
+        }
+
+        // 编译着色器
+        function compileShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert('编译着色器时发生错误: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+
+            return shader;
+        }
+
+        // 初始化缓冲区
+        function initBuffers(gl) {
+            // 创建顶点缓冲区
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+            // 创建一个正方形
+            const positions = [
+                -0.5,  0.5,
+                 0.5,  0.5,
+                -0.5, -0.5,
+                 0.5, -0.5,
+            ];
+
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+            return {
+                position: positionBuffer,
+            };
+        }
+
+        // 绘制场景
+        function drawScene(gl, programInfo, buffers, modelViewMatrix) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // 创建投影矩阵
+            const projectionMatrix = new Matrix4();
+            // 使用正交投影
+            const left = -2;
+            const right = 2;
+            const bottom = -2;
+            const top = 2;
+            const near = -1;
+            const far = 1;
+            
+            projectionMatrix.elements = new Float32Array([
+                2/(right-left), 0, 0, -(right+left)/(right-left),
+                0, 2/(top-bottom), 0, -(top+bottom)/(top-bottom),
+                0, 0, -2/(far-near), -(far+near)/(far-near),
+                0, 0, 0, 1
+            ]);
+
+            // 设置绘图位置
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexPosition,
+                2,        // 每个顶点2个分量
+                gl.FLOAT, // 数据类型
+                false,    // 不需要归一化
+                0,        // 步长
+                0         // 偏移量
+            );
+            gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+            // 使用着色器程序
+            gl.useProgram(programInfo.program);
+
+            // 设置uniforms
+            gl.uniformMatrix4fv(
+                programInfo.uniformLocations.projectionMatrix,
+                false,
+                projectionMatrix.elements
+            );
+            gl.uniformMatrix4fv(
+                programInfo.uniformLocations.modelViewMatrix,
+                false,
+                modelViewMatrix.elements
+            );
+
+            // 绘制
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+
+        // 初始化变换控制
+        function initTransformControls(gl, programInfo, buffers) {
+            const translateX = document.getElementById('translateX');
+            const translateY = document.getElementById('translateY');
+            const translateZ = document.getElementById('translateZ');
+            const rotateX = document.getElementById('rotateX');
+            const rotateY = document.getElementById('rotateY');
+            const rotateZ = document.getElementById('rotateZ');
+            const scaleX = document.getElementById('scaleX');
+            const scaleY = document.getElementById('scaleY');
+            const scaleZ = document.getElementById('scaleZ');
+
+            // 更新显示值
+            function updateValues() {
+                document.querySelector('#translateX + .value').textContent = translateX.value;
+                document.querySelector('#translateY + .value').textContent = translateY.value;
+                document.querySelector('#translateZ + .value').textContent = translateZ.value;
+                document.querySelector('#rotateX + .value').textContent = rotateX.value + '°';
+                document.querySelector('#rotateY + .value').textContent = rotateY.value + '°';
+                document.querySelector('#rotateZ + .value').textContent = rotateZ.value + '°';
+                document.querySelector('#scaleX + .value').textContent = scaleX.value;
+                document.querySelector('#scaleY + .value').textContent = scaleY.value;
+                document.querySelector('#scaleZ + .value').textContent = scaleZ.value;
+                
+                // 更新变换矩阵并重绘
+                updateTransform();
+            }
+
+            function updateTransform() {
+                const tx = parseFloat(translateX.value);
+                const ty = parseFloat(translateY.value);
+                const tz = parseFloat(translateZ.value);
+                const rx = parseFloat(rotateX.value) * Math.PI / 180;
+                const ry = parseFloat(rotateY.value) * Math.PI / 180;
+                const rz = parseFloat(rotateZ.value) * Math.PI / 180;
+                const sx = parseFloat(scaleX.value);
+                const sy = parseFloat(scaleY.value);
+                const sz = parseFloat(scaleZ.value);
+
+                const modelViewMatrix = new Matrix4()
+                    .translate(tx, ty, tz)
+                    .rotateX(rx)
+                    .rotateY(ry)
+                    .rotateZ(rz)
+                    .scale(sx, sy, sz);
+
+                drawScene(gl, programInfo, buffers, modelViewMatrix);
+            }
+
+            translateX.oninput = updateValues;
+            translateY.oninput = updateValues;
+            translateZ.oninput = updateValues;
+            rotateX.oninput = updateValues;
+            rotateY.oninput = updateValues;
+            rotateZ.oninput = updateValues;
+            scaleX.oninput = updateValues;
+            scaleY.oninput = updateValues;
+            scaleZ.oninput = updateValues;
+
+            updateValues();
+        }
+
+        // 页面加载完成后初始化WebGL
+        window.onload = initWebGL;
+    </script>
+</body>
+</html>
