@@ -298,8 +298,8 @@
 
             const matrixA = getMatrixValues('matrix-a');
             const matrixB = getMatrixValues('matrix-b');
-            const row = Math.floor(currentStep / 4);
-            const col = currentStep % 4;
+            const col = Math.floor(currentStep / 4);  
+            const row = currentStep % 4;
 
             // 清除之前的高亮
             document.querySelectorAll('.highlight').forEach(el => {
@@ -313,12 +313,15 @@
             matrixARow.forEach(cell => cell.classList.add('highlight'));
             matrixBCol.forEach(cell => cell.classList.add('highlight'));
 
-            // 计算结果
+            // 计算结果（使用列主序访问）
             let result = 0;
             let calculation = [];
             for (let i = 0; i < 4; i++) {
-                result += matrixA[i + col * 4] * matrixB[row * 4 + i];
-                calculation.push(`${matrixA[i + col * 4]} × ${matrixB[row * 4 + i]}`);
+                // 在列主序中，第 i 行 j 列的元素索引为 i + j*4
+                const aValue = matrixA[row + i * 4];  
+                const bValue = matrixB[i + col * 4];  
+                result += aValue * bValue;
+                calculation.push(`${aValue.toFixed(2)} × ${bValue.toFixed(2)}`);
             }
 
             // 显示计算过程
